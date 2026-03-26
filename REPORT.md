@@ -77,18 +77,18 @@ SELECT * FROM users;
 ```
 
 ```
- id |       name        |            email            | registration_date | is_active 
-----+-------------------+-----------------------------+-------------------+-----------
-  1 | Іван Петренко     | ivan.petrenko@email.com     | 2024-01-15        | t
-  2 | Марія Коваленко   | maria.kovalenko@email.com   | 2024-02-20        | t
-  3 | Олег Сидоренко    | oleg.sydorenko@email.com    | 2024-03-10        | t
-  4 | Анна Шевченко     | anna.shevchenko@email.com   | 2024-04-05        | t
-  5 | Віктор Бондаренко | viktor.bondarenko@email.com | 2024-05-12        | t
-  6 | Ольга Гриценко    | olga.gritsenko@email.com    | 2024-06-18        | t
-  7 | Дмитро Кравченко  | dmytro.kravchenko@email.com | 2024-07-22        | t
-  8 | Софія Литвиненко  | sofia.lytvynenko@email.com  | 2024-08-14        | t
-  9 | Андрій Мороз      | andriy.moroz@email.com      | 2024-09-08        | f
- 10 | Микола Васильєв   | mykola.vasiliev@email.com   | 2024-10-01        | t
+ id |        name         |             email             | registration_date | is_active 
+----+---------------------+-------------------------------+-------------------+-----------
+  1 | Станіслав Гайдук    | stanislav.haiduk@email.com    | 2024-01-08        | t
+  2 | Поліна Руденко      | polina.rudenko@email.com     | 2024-02-25        | t
+  3 | Ігор Савчук         | igor.savchuk@email.com       | 2024-03-15        | t
+  4 | Уляна Білоус        | uliana.bil@email.com         | 2024-04-10        | t
+  5 | Ростислав Олійник   | rostyslav.oliynyk@email.com | 2024-05-20        | t
+  6 | Вероніка Кушнір     | veronika.kushnir@email.com   | 2024-06-25        | t
+  7 | Давид Яременко      | david.yar@email.com         | 2024-07-28        | t
+  8 | Сніжана Клименко   | snizhana.klymenko@email.com  | 2024-08-20        | t
+  9 | Тимофій Григоренко  | tymofiy.hryhorenko@email.com| 2024-09-15        | f
+ 10 | Микола Васильєв     | mykola.vasiliev@email.com    | 2024-10-01        | t
 (10 rows)
 ```
 
@@ -99,12 +99,12 @@ SELECT * FROM users;
 ```
  id | user_id | account_number |  balance  | account_type 
 ----+---------+----------------+-----------+--------------
-  1 |       1 | ACC001         |  1500.50 | checking
-  2 |       1 | ACC002         |  5000.00 | savings
-  3 |       1 | ACC003         |  2500.00 | credit
+  1 |       1 | ACC001         |  1600.50 | checking
+  2 |       1 | ACC002         |  4750.00 | savings
+  3 |       1 | ACC003         |  2450.25 | credit
   ...
- 20 |      10 | ACC020         |  6100.50 | savings
- 21 |      10 | ACC021         |   850.00 | checking
+ 20 |      10 | ACC020         |  5875.00 | savings
+ 21 |      10 | ACC021         |   775.00 | checking
 (30 rows)
 ```
 
@@ -133,11 +133,18 @@ SELECT * FROM users;
 ## Рисунок 7 - INNER JOIN результат
 
 ```
-SELECT u.name, a.account_number, SUM(t.amount) AS total
+SELECT u.name, a.account_number, SUM(t.amount) AS total_amount
 FROM users u
 JOIN accounts a ON u.id = a.user_id
 JOIN transactions t ON a.id = t.account_id
 GROUP BY u.name, a.account_number;
+```
+
+```
+     name          | account_number | total_amount 
+-------------------+----------------+--------------
+ Станіслав Гайдук  | ACC001         |       250.00
+(результат залежить від даних транзакцій)
 ```
 
 ---
@@ -152,9 +159,9 @@ FROM accounts GROUP BY account_type;
 ```
  account_type | count |   sum    |   avg   
 --------------+-------+----------+---------
- credit       |     8 | 18950.50 | 2368.81
- savings      |    11 | 43604.25 | 3964.02
- checking     |    11 | 25103.00 | 2282.09
+ credit       |     8 | 18300.25 | 2287.53
+ savings      |    11 | 43100.00 | 3918.18
+ checking     |    11 | 24225.00 | 2202.27
 (3 rows)
 ```
 
@@ -169,7 +176,7 @@ CALL calculate_balance_proc(1, NULL);
 ```
  balance 
 --------
- 300.00
+ 250.00
 ```
 
 ---
@@ -179,20 +186,20 @@ CALL calculate_balance_proc(1, NULL);
 ```
 SELECT balance FROM accounts WHERE id = 1;
 INSERT INTO transactions (account_id, amount, type, description) 
-VALUES (1, 200, 'credit', 'Test');
+VALUES (1, 205, 'credit', 'Тестова транзакція');
 SELECT balance FROM accounts WHERE id = 1;
 ```
 
 ```
  balance 
 --------
- 1500.50   <- до INSERT
+ 250.00   <- до INSERT
 
-INSERT 0 1
+ INSERT 0 1
 
  balance 
 --------
- 1700.50   <- після INSERT (+200)
+ 455.00   <- після INSERT (+205)
 ```
 
 ---
@@ -206,13 +213,13 @@ WHERE u.name = 'Микола Васильєв';
 ```
 
 ```
-       name       | account_number |  balance  | account_type 
------------------+----------------+-----------+--------------
- Микола Васильєв | ACC020         |  6100.50 | savings
- Микола Васильєв | ACC021         |   850.00 | checking
+     name        | account_number |  balance  | account_type 
+----------------+----------------+-----------+--------------
+ Микола Васильєв | ACC020         | 5875.00 | savings
+ Микола Васильєв | ACC021         |  775.00 | checking
 (2 rows)
 
-Загальний баланс: $6,950.50
+Загальний баланс: $6,650.00
 ```
 
 ---
@@ -228,16 +235,16 @@ GROUP BY u.name ORDER BY total DESC;
 ```
        name        |  total   
 -------------------+----------
- Іван Петренко     | 13401.25
- Андрій Мороз      | 11300.50
- Дмитро Кравченко  | 11201.50
- Віктор Бондаренко |  8900.75
- Анна Шевченко     |  8700.25
- **Микола Васильєв** |  **6950.50**
- Олег Сидоренко    |  7600.75
- Марія Коваленко   |  6450.75
- Софія Литвиненко  |  6450.75
- Ольга Гриценко    |  5600.75
+ Станіслав Гайдук  | 13030.75
+ Тимофій Григоренко| 11250.75
+ Давид Яременко   | 10775.50
+ Ростислав Олійник|  8575.50
+ Уляна Білоус     |  8525.00
+ **Микола Васильєв**|  **6650.00**
+ Ігор Савчук      |  7275.25
+ Поліна Руденко   |  6400.50
+ Сніжана Клименко |  6175.00
+ Вероніка Кушнір  |  5400.00
 (10 rows)
 ```
 
